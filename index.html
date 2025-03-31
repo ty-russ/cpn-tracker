@@ -121,42 +121,98 @@
       </label>
     </div>
 
-    <!-- Form -->
-     <!-- Returns Parameters -->
-     <div class="bg-gray-50 p-4 rounded-lg shadow mb-6">
-      <h2 class="text-xl font-semibold mb-2">“Returns” (0–2 each)</h2>
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
-        <div><label>Physical</label><input type="number" id="physical" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
-        <div><label>Emotional Support</label><input type="number" id="emotional" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
-        <div><label>Initiative</label><input type="number" id="initiative" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
-        <div><label>Surprises (Gifts, Pics etc)</label><input type="number" id="surprises" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
-        <div><label>Peace Level</label><input type="number" id="peace" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
-      </div>
-    </div>
-    <form id="cpnForm" class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
-      <input type="text" id="name" placeholder="Her Name" class="col-span-1 p-2 border rounded" required>
-      <input type="date" id="dateInput" class="col-span-1 p-2 border rounded">
-      <select id="monthInput" class="col-span-1 p-2 border rounded hidden">
-        <option value="">Select Month</option>
-        <option value="2025-01">January</option>
-        <option value="2025-02">February</option>
-        <option value="2025-03">March</option>
-        <option value="2025-04">April</option>
-        <option value="2025-05">May</option>
-        <option value="2025-06">June</option>
-        <option value="2025-07">July</option>
-        <option value="2025-08">August</option>
-        <option value="2025-09">September</option>
-        <option value="2025-10">October</option>
-        <option value="2025-11">November</option>
-        <option value="2025-12">December</option>
-      </select>
-      <input type="number" id="money" placeholder="Money ($)" class="col-span-1 p-2 border rounded" required>
-      <input type="number" id="time" placeholder="Time (hrs)" class="col-span-1 p-2 border rounded" required>
-      <input type="number" id="vibes" placeholder="Vibes (0-10)" class="col-span-1 p-2 border rounded" required>
-      <button type="submit" class="col-span-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add</button>
-    </form>
+  <!-- Form -->
+    <form id="cpnForm" class="bg-white p-6 rounded-lg shadow space-y-6 mb-8">
 
+      <h2 class="text-2xl font-bold mb-2">CPN Entry</h2>
+    
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-4 text-sm">
+    
+        <!-- Name -->
+        <div class="md:col-span-2">
+          <label for="name" class="block mb-1 font-medium">Her Name</label>
+          <input type="text" id="name" placeholder="e.g. Maria" class="w-full p-2 border rounded" required>
+        </div>
+    
+        <!-- Date -->
+        <div>
+          <label class="block mb-1 font-medium">Date</label>
+          <input type="date" id="dateInput" class="w-full p-2 border rounded">
+        </div>
+    
+        <!-- Month -->
+        <div>
+          <label class="block mb-1 font-medium">Month</label>
+          <select id="monthInput" class="w-full p-2 border rounded hidden">
+            <option value="">Select Month</option>
+            <option value="2025-01">January</option>
+            <option value="2025-02">February</option>
+            <option value="2025-03">March</option>
+            <option value="2025-04">April</option>
+            <option value="2025-05">May</option>
+            <option value="2025-06">June</option>
+            <option value="2025-07">July</option>
+            <option value="2025-08">August</option>
+            <option value="2025-09">September</option>
+            <option value="2025-10">October</option>
+            <option value="2025-11">November</option>
+            <option value="2025-12">December</option>
+          </select>
+        </div>
+    
+        <!-- Money -->
+        <div>
+          <label for="money" class="block mb-1 font-medium">Money ($)</label>
+          <input type="number" id="money" placeholder="e.g. 120" class="w-full p-2 border rounded" required>
+        </div>
+    
+        <!-- Time -->
+        <div>
+          <label for="time" class="block mb-1 font-medium">Time (hrs)</label>
+          <input type="number" id="time" placeholder="e.g. 4" class="w-full p-2 border rounded" required>
+        </div>
+    
+        <!-- Vibes -->
+        <div>
+          <label for="vibes" class="block mb-1 font-medium">Vibes (0–10)</label>
+          <input type="number" id="vibes" placeholder="e.g. 7" class="w-full p-2 border rounded" required>
+        </div>
+      </div>
+    
+      <hr class="my-4 border-t">
+    
+      <h3 class="text-lg font-semibold">Weighted Returns (0–2 Each)</h3>
+    
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+        <div>
+          <label for="physical" class="block mb-1 font-medium">Physical</label>
+          <input type="number" id="physical" min="0" max="2" value="0" class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <label for="emotional" class="block mb-1 font-medium">Emotional Support</label>
+          <input type="number" id="emotional" min="0" max="2" value="0" class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <label for="initiative" class="block mb-1 font-medium">Initiative</label>
+          <input type="number" id="initiative" min="0" max="2" value="0" class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <label for="surprises" class="block mb-1 font-medium">Surprises (Gifts, Pics, etc)</label>
+          <input type="number" id="surprises" min="0" max="2" value="0" class="w-full p-2 border rounded">
+        </div>
+        <div>
+          <label for="peace" class="block mb-1 font-medium">Peace Level</label>
+          <input type="number" id="peace" min="0" max="2" value="0" class="w-full p-2 border rounded">
+        </div>
+      </div>
+    
+      <!-- Submit -->
+      <div class="text-right">
+        <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+          Add Entry
+        </button>
+      </div>
+    </form>
    
 
     <!-- Table -->
