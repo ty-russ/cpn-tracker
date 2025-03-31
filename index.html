@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CPN Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+</head>
+
+<style>
+  .animate-glow {
+    animation: glow 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 5px #22c55e;
+    }
+    to {
+      box-shadow: 0 0 20px #16a34a;
+    }
+  }
+  .wedding {
+    background: linear-gradient(to right, #fff1f2, #fef3c7);
+    color: #4b5563;
+    border: 2px solid #facc15;
+    animation: weddingGlow 1s ease-in-out infinite alternate;
+  }
+
+  @keyframes weddingGlow {
+    from { box-shadow: 0 0 10px #fcd34d; }
+    to { box-shadow: 0 0 20px #facc15; }
+  }
+
+  .wedding h2 {
+    font-family: 'Brush Script MT', cursive;
+    color: #db2777;
+    font-size: 2.2rem;
+  }
+
+  .wedding p {
+    font-style: normal;
+    color: #6b7280;
+  }
+
+  .confetti {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+  }
+ 
+
+  @keyframes funeralFade {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .funeral {
+    background-color: #111827 !important;
+    color: #f9fafb !important;
+    border-color: #374151 !important;
+    animation: funeralFade 1s ease-in-out;
+  }
+
+  .funeral h2 {
+    color: #fbbf24 !important;
+    font-family: 'Georgia', serif;
+    text-shadow: 0 0 5px #fbbf24;
+  }
+
+  .funeral p {
+    font-style: italic;
+    color: #d1d5db;
+  }
+</style>
+
+<body class="bg-gray-100 min-h-screen p-6">
+  <div id="tracker" class="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-6">
+    <h1 class="text-3xl font-bold text-center mb-6">Instant CPN Tracker: Cost Per Nut</h1>
+
+    <!-- Stats Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-blue-50 p-4 rounded shadow">
+        <h2 class="text-lg font-semibold">Average CPN</h2>
+        <p id="avgCpn" class="text-2xl text-blue-700 font-bold">--</p>
+      </div>
+      <div class="bg-green-50 p-4 rounded shadow">
+        <h2 class="text-lg font-semibold">Top Performer</h2>
+        <p id="topPerformer" class="text-lg text-green-800 font-bold">--</p>
+      </div>
+    </div>
+
+    <button onclick="syncUnsynced()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+      Sync Unsynced
+    </button>
+
+    <button onclick="downloadCSV()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+      Download CSV
+    </button>
+
+    <button onclick="downloadSummaryImage()" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+      Download Summary
+    </button>
+    
+
+
+    <!-- Date Mode Toggle -->
+    <div class="flex items-center justify-center gap-4 mb-4">
+      <label class="font-semibold">Track By:</label>
+      <label class="flex items-center gap-2">
+        <input type="radio" name="dateMode" value="date" checked class="accent-blue-600" onchange="toggleDateInput()"> Full Date
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="radio" name="dateMode" value="month" class="accent-blue-600" onchange="toggleDateInput()"> Month Only
+      </label>
+    </div>
+
+    <!-- Form -->
+     <!-- Returns Parameters -->
+     <div class="bg-gray-50 p-4 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-2">“Returns” (0–2 each)</h2>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+        <div><label>Physical</label><input type="number" id="physical" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
+        <div><label>Emotional Support</label><input type="number" id="emotional" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
+        <div><label>Initiative</label><input type="number" id="initiative" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
+        <div><label>Surprises</label><input type="number" id="surprises" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
+        <div><label>Peace Level</label><input type="number" id="peace" min="0" max="2" value="0" class="w-full p-1 border rounded"></div>
+      </div>
+    </div>
+    <form id="cpnForm" class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+      <input type="text" id="name" placeholder="Name" class="col-span-1 p-2 border rounded" required>
+      <input type="date" id="dateInput" class="col-span-1 p-2 border rounded">
+      <select id="monthInput" class="col-span-1 p-2 border rounded hidden">
+        <option value="">Select Month</option>
+        <option value="2025-01">January</option>
+        <option value="2025-02">February</option>
+        <option value="2025-03">March</option>
+        <option value="2025-04">April</option>
+        <option value="2025-05">May</option>
+        <option value="2025-06">June</option>
+        <option value="2025-07">July</option>
+        <option value="2025-08">August</option>
+        <option value="2025-09">September</option>
+        <option value="2025-10">October</option>
+        <option value="2025-11">November</option>
+        <option value="2025-12">December</option>
+      </select>
+      <input type="number" id="money" placeholder="Money ($)" class="col-span-1 p-2 border rounded" required>
+      <input type="number" id="time" placeholder="Time (hrs)" class="col-span-1 p-2 border rounded" required>
+      <input type="number" id="vibes" placeholder="Vibes (0-10)" class="col-span-1 p-2 border rounded" required>
+      <button type="submit" class="col-span-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add</button>
+    </form>
+
+   
+
+    <!-- Table -->
+    <table class="table-auto w-full mb-8 text-sm">
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="p-2">Name</th>
+          <th class="p-2">Date/Month</th>
+          <th class="p-2">Money</th>
+          <th class="p-2">Time</th>
+          <th class="p-2">Returns</th>
+          <th class="p-2">Vibes</th>
+          <th class="p-2">CPN ($)</th>
+          <th class="p-2">ROI</th>
+          <th class="p-2">Badge</th>
+        </tr>
+      </thead>
+      <tbody id="cpnTable" class="text-center"></tbody>
+    </table>
+   
+    <!-- Chart -->
+    <canvas id="cpnChart" height="100"></canvas>
+
+
+    <!-- ROI Heatmap -->
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold mb-2">ROI Heatmap</h2>
+
+      <div id="summaryCard" class="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold mb-4">CPN Tracker Summary</h2>
+        <p><strong>Entries:</strong> <span id="entryCount">--</span></p>
+        <p><strong>Total Money Spent:</strong> <span id="totalMoney">--</span></p>
+        <p><strong>Total Time Invested:</strong> <span id="totalTime">--</span> hrs</p>
+        <!-- <p><strong>CPN Average:</strong> <span id="avgCpn">--</span></p>
+        <p><strong>Top Performer:</strong> <span id="topPerformer">--</span></p> -->
+      </div>
+
+      <button onclick="toggleFuneralMode()" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+        Funeral Mode
+      </button>
+
+      <button onclick="toggleWeddingMode()" class="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600">
+        Wedding Mode
+      </button>
+      
+      <!-- <audio id="violinSigh" src="https://cdn.pixabay.com/audio/2023/05/06/audio_7613fd42e3.mp3"></audio> -->
+      <audio id="violinSigh" preload="auto">
+        <source src="https://cdn.freesound.org/previews/104/104994_1624545-lq.mp3" type="audio/mp3">
+      </audio>
+      <!-- <audio id="weddingBell" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-small-bell-ring-599.mp3" type="audio/mp3">
+      </audio> -->
+
+      <audio id="weddingBell" preload="auto">
+        <source src="https://cdn.freesound.org/previews/406/406485_612689-lq.mp3" type="audio/mp3">
+      </audio>
+      
+      
+      <canvas id="roiChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('cpnForm');
+    const table = document.getElementById('cpnTable');
+    const chartCtx = document.getElementById('cpnChart').getContext('2d');
+    const hourlyRate = 10;
+    let data = JSON.parse(localStorage.getItem('cpnData')) || [];
+
+    const avgCpnElem = document.getElementById('avgCpn');
+    const topPerformerElem = document.getElementById('topPerformer');
+    const roiChartCtx = document.getElementById('roiChart').getContext('2d');
+
+    const roiChart = new Chart(roiChartCtx, {
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Emotional ROI', data: [], backgroundColor: 'rgba(34,197,94,0.6)' }] },
+      options: { indexAxis: 'y', scales: { x: { beginAtZero: true } } }
+    });
+
+ 
+/*
+    function updateSummary(filtered = data) {
+      const validCpn = filtered.filter(d => !isNaN(parseFloat(d.cpn)) && isFinite(d.cpn));
+      const avg = validCpn.length
+        ? (validCpn.reduce((sum, d) => sum + parseFloat(d.cpn), 0) / validCpn.length).toFixed(2)
+        : '--';
+      //avgCpnElem.textContent = avg === '--' ? '--' : `$${avg}`;
+      const totalMoney = filtered.reduce((sum, d) => sum + (parseFloat(d.money) || 0), 0);
+      const totalTime = filtered.reduce((sum, d) => sum + (parseFloat(d.time) || 0), 0);
+      const entryCount = filtered.length;
+    
+      const sorted = validCpn.sort((a, b) => parseFloat(a.cpn) - parseFloat(b.cpn));
+      const top = sorted.length > 0 ? sorted[0] : null;
+     // topPerformerElem.textContent = top ? `${top.name} - CPN: $${top.cpn}, ROI: ${top.roi}` : '--';
+      document.getElementById('avgCpn').textContent = avg === '--' ? '--' : `$${avg}`;
+      document.getElementById('entryCount').textContent = entryCount;
+      document.getElementById('totalMoney').textContent = `$${totalMoney.toFixed(2)}`;
+      document.getElementById('totalTime').textContent = totalTime.toFixed(1);
+      document.getElementById('topPerformer').textContent = top
+        ? `${top.name} - CPN: $${top.cpn}, ROI: ${top.roi}`
+        : '--';
+    
+      roiChart.data.labels = filtered.map(d => `${d.name}`);
+      roiChart.data.datasets[0].data = filtered.map(d => parseFloat(d.roi) || 0);
+      roiChart.update();
+    }
+*/
+
+    function updateSummary(filtered = data) {
+      const validCpn = filtered.filter(d => !isNaN(parseFloat(d.cpn)) && isFinite(d.cpn));
+      const avg = validCpn.length
+        ? (validCpn.reduce((sum, d) => sum + parseFloat(d.cpn), 0) / validCpn.length).toFixed(2)
+        : '--';
+    
+      const totalMoney = filtered.reduce((sum, d) => sum + (parseFloat(d.money) || 0), 0);
+      const totalTime = filtered.reduce((sum, d) => sum + (parseFloat(d.time) || 0), 0);
+      const entryCount = filtered.length;
+    
+      const sorted = validCpn.sort((a, b) => parseFloat(a.cpn) - parseFloat(b.cpn));
+      const top = sorted.length > 0 ? sorted[0] : null;
+    
+      document.getElementById('avgCpn').textContent = avg === '--' ? '--' : `$${avg}`;
+      document.getElementById('entryCount').textContent = entryCount;
+      document.getElementById('totalMoney').textContent = `$${totalMoney.toFixed(2)}`;
+      document.getElementById('totalTime').textContent = totalTime.toFixed(1);
+      document.getElementById('topPerformer').textContent = top
+        ? `${top.name} - CPN: $${top.cpn}, ROI: ${top.roi}`
+        : '--';
+    
+      // ROI Heatmap
+      roiChart.data.labels = filtered.map(d => `${d.name}`);
+      roiChart.data.datasets[0].data = filtered.map(d => parseFloat(d.roi) || 0);
+      roiChart.update();
+    
+      // Funeral Mode Trigger
+      const avgCpnNumeric = parseFloat(avg);
+      const topRoiNumeric = top && parseFloat(top.roi);
+    
+      if ((avgCpnNumeric > 100) || (topRoiNumeric < 0.05)) {
+        const card = document.getElementById('summaryCard');
+        const audio = document.getElementById('violinSigh');
+        if (!card.classList.contains('funeral')) {
+          card.classList.add('funeral');
+          audio.currentTime = 0;
+          audio.play();
+
+          setTimeout(() => {
+            audio.pause();
+          }, 5000); // Stop after 5 seconds
+        }
+      }
+
+
+            // Wedding Mode Trigger
+      if ((avgCpnNumeric <= 100) && (topRoiNumeric >= 0.25)) {
+        const card = document.getElementById('summaryCard');
+        const audio = document.getElementById('weddingBell');
+        if (!card.classList.contains('wedding')) {
+          card.classList.remove('funeral'); // remove funeral if active
+          card.classList.add('wedding');
+          audio.currentTime = 0;
+          audio.play();
+          triggerConfetti();
+
+          setTimeout(() => {
+            audio.pause();
+          }, 10000); // Stop after 5 seconds
+        }
+      }
+
+    }
+    
+    
+
+  
+    function getDateMode() {
+      return document.querySelector('input[name="dateMode"]:checked').value;
+    }
+
+    function toggleDateInput() {
+      const mode = getDateMode();
+      document.getElementById('dateInput').classList.toggle('hidden', mode !== 'date');
+      document.getElementById('monthInput').classList.toggle('hidden', mode !== 'month');
+    }
+
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const mode = getDateMode();
+      const date = mode === 'date' ? document.getElementById('dateInput').value : document.getElementById('monthInput').value;
+      // Validate visible input only
+      if (!date) {
+        dateField.focus();
+        return;
+      }
+      const returns = ['physical', 'emotional', 'initiative', 'surprises', 'peace']
+        .map(id => parseInt(document.getElementById(id).value) || 0)
+        .reduce((a, b) => a + b, 0);
+
+      const vibes = parseFloat(document.getElementById('vibes').value);
+      const money = parseFloat(document.getElementById('money').value);
+      const time = parseFloat(document.getElementById('time').value);
+      const timeCost = time * hourlyRate;
+      const totalCost = money + timeCost;
+
+      const cpn = returns > 0 ? (totalCost / returns).toFixed(2) : '∞';
+      const roi = returns > 0 ? ((vibes * returns) / totalCost).toFixed(2) : 'N/A';
+      const badge = (cpn <= 60 && roi >= 0.20) ? "💚" : "🚩";
+
+      const entry = { name: document.getElementById('name').value, date, money, time, returns, vibes, cpn, roi, badge };
+      data.push(entry);
+      localStorage.setItem('cpnData', JSON.stringify(data));
+
+      entry.synced = false; // default to false
+   
+      syncToGoogle(entry);
+
+      // Push to Google Sheets
+      fetch('https://script.google.com/macros/s/AKfycbzGUHcLRVcD97qCw-TkVl5LMt7ouRqLZWUpfIcxXV2F2ykLBfrjZL54ER10pQo9ntq2/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      });
+
+      updateTable();
+      updateChart();
+      updateSummary();
+      form.reset();
+    });
+
+    function syncUnsynced() {
+      const unsynced = data.filter(d => !d.synced);
+      if (!unsynced.length) {
+        alert('All entries are already synced!');
+        return;
+      }
+      unsynced.forEach(entry => {
+        syncToGoogle(entry);
+      });
+      alert(`${unsynced.length} entries sent for sync.`);
+    }
+    
+
+    function updateTable(filtered = data) {
+      table.innerHTML = '';
+      filtered.forEach(d => {
+        table.innerHTML += `
+          <tr>
+            <td class="p-2">${d.name}</td>
+            <td class="p-2">${d.date}</td>
+            <td class="p-2">$${d.money}</td>
+            <td class="p-2">${d.time}</td>
+            <td class="p-2">${d.returns}</td>
+            <td class="p-2">${d.vibes}</td>
+            <td class="p-2">${d.cpn}</td>
+            <td class="p-2">${d.roi}</td>
+            <td class="p-2 font-semibold text-green-600">${d.badge ? `<span class='inline-block animate-glow animate-bounce px-2 py-1 rounded-full bg-green-200 text-green-800 text-xs'>${d.badge}</span>` : ''}</td>
+          </tr>
+        `;
+      });
+      updateSummary(filtered);
+    }
+
+    function syncToGoogle(entry, onSuccess = () => {}, onFail = () => {}) {
+      fetch('https://script.google.com/macros/s/AKfycbzGUHcLRVcD97qCw-TkVl5LMt7ouRqLZWUpfIcxXV2F2ykLBfrjZL54ER10pQo9ntq2/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      }).then(() => {
+        entry.synced = true;
+        localStorage.setItem('cpnData', JSON.stringify(data));
+        onSuccess();
+      }).catch(() => {
+        entry.synced = false;
+        localStorage.setItem('cpnData', JSON.stringify(data));
+        onFail();
+      });
+    }
+    
+
+
+    const chart = new Chart(chartCtx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'CPN ($)',
+          data: [],
+          backgroundColor: 'rgba(59,130,246,0.5)',
+          borderColor: 'rgba(59,130,246,1)',
+          borderWidth: 1
+        }]
+      },
+      options: { scales: { y: { beginAtZero: true } } }
+    });
+
+    function updateChart(filtered = data) {
+      chart.data.labels = filtered.map(d => `${d.name} (${d.date})`);
+      chart.data.datasets[0].data = filtered.map(d => d.cpn === '∞' ? null : parseFloat(d.cpn));
+      chart.update();
+    }
+
+    function downloadCSV() {
+      if (!data.length) {
+        alert('No data to download yet!');
+        return;
+      }
+    
+      const headers = ['Name', 'Date', 'Money', 'Time', 'Returns', 'Vibes', 'CPN', 'ROI', 'Badge', 'Synced'];
+      const rows = data.map(d => [
+        d.name,
+        d.date,
+        d.money,
+        d.time,
+        d.returns,
+        d.vibes,
+        d.cpn,
+        d.roi,
+        d.badge,
+        d.synced ? 'Yes' : 'No'
+      ]);
+    
+      const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+    
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cpn_regrets.csv';
+      a.click();
+    }
+    function downloadSummaryImage() {
+      html2canvas(document.getElementById("summaryCard")).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'cpn_summary.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+    function toggleFuneralMode() {
+      const card = document.getElementById('summaryCard');
+      const audio = document.getElementById('violinSigh');
+      const isFuneral = card.classList.toggle('funeral');
+    
+      if (isFuneral) {
+        audio.currentTime = 0;
+        audio.play();
+
+
+        setTimeout(() => {
+          audio.pause();
+        }, 5000); // Stop after 5 seconds
+
+      }
+    }
+
+    function triggerConfetti() {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+
+    function toggleWeddingMode() {
+      const card = document.getElementById('summaryCard');
+      const audio = document.getElementById('weddingBell');
+      const isWedding = card.classList.toggle('wedding');
+      card.classList.remove('funeral');
+      if (isWedding) {
+        audio.currentTime = 0;
+        audio.play();
+        triggerConfetti();
+
+        setTimeout(() => {
+          audio.pause();
+        }, 5000); // Stop after 5 seconds
+
+      }
+    }
+    
+    
+    
+    
+
+    toggleDateInput();
+    updateTable();
+    updateChart();
+  </script>
+</body>
+</html>
