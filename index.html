@@ -351,7 +351,7 @@
       const avgCpnNumeric = parseFloat(avg);
       const topRoiNumeric = top && parseFloat(top.roi);
     
-      if ((avgCpnNumeric > 50) || (topRoiNumeric < 0.10)) {
+      if ((avgCpnNumeric > 50) || (topRoiNumeric < 0.20)) {
         const card = document.getElementById('summaryCard');
         const audio = document.getElementById('violinSigh');
         if (!card.classList.contains('funeral')) {
